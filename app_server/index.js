@@ -47,6 +47,7 @@ exports.config;
 //FLAGS
 let silent_update_conf = false;
 let gen_new_conf = false;
+let use_load_balancer = true;
 
 //Process all arguments
 for(let i = 0; i < args.length; i++){
@@ -58,6 +59,7 @@ for(let i = 0; i < args.length; i++){
         console.info("--quiet-upd\t|\tif the config is missing elements, import the new ones from the defaults and suppress warnings");
         console.info("--conf=name\t|\trun using a specific config file rather than the environment config");
         console.info("--env=env  \t|\tset the environment from the command line and override the ENV file");
+        console.info("--no-load  \t|\tDon't use the load balancer");
         console.info("");
         console.info("");
         console.info("Note: --new-conf will generate a default config and terminate the process. To continue execution, use --quiet-upd");
@@ -74,6 +76,9 @@ for(let i = 0; i < args.length; i++){
     }else if(args[i].match(/^--conf=[a-zA-Z0-9]*$/)){
         //Sets the environment
         exports.config = args[i].replace("--conf=","");
+    }else if(args[i].match(/^--no-load$/)){
+        //Disable load balancer
+        use_load_balancer = false;
     }
 }
 
@@ -198,6 +203,8 @@ try{
 const rm = require("./request_manager.js");
 rm.init(this);
 
-//connect to the server pool
-const pool = require("./pool_connector");
-pool.init(this);
+if(use_load_balancer) {
+    //connect to the server pool
+    const pool = require("./pool_connector");
+    pool.init(this);
+}
