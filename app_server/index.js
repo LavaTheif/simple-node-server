@@ -7,11 +7,11 @@ const fs = require('fs');
 
 //Load in the servers private key
 let priv_key;
-if(fs.existsSync("../conf/privateKey.json")){
+if (fs.existsSync("../conf/privateKey.json")) {
     priv_key = fs.readFileSync("../conf/privateKey.json");
-}else{
+} else {
     console.info("No keys detected. Generating new ones.");
-    const { generateKeyPair } = require('crypto');
+    const {generateKeyPair} = require('crypto');
     generateKeyPair('rsa', {
         modulusLength: 4096,
         publicKeyEncoding: {
@@ -23,10 +23,10 @@ if(fs.existsSync("../conf/privateKey.json")){
             format: 'pem',
         }
     }, (err, publicKey, privateKey) => {
-        if(err)
+        if (err)
             return console.log(err);
 
-        let id = Math.floor(Math.random()*2147483647);
+        let id = Math.floor(Math.random() * 2147483647);
         console.log(id);
         let json = {};
 
@@ -50,8 +50,8 @@ let gen_new_conf = false;
 let use_load_balancer = true;
 
 //Process all arguments
-for(let i = 0; i < args.length; i++){
-    if(args[i] === "help"){
+for (let i = 0; i < args.length; i++) {
+    if (args[i] === "help") {
         console.info("###Arguments###");
         console.info("");
         console.info("");
@@ -64,19 +64,19 @@ for(let i = 0; i < args.length; i++){
         console.info("");
         console.info("Note: --new-conf will generate a default config and terminate the process. To continue execution, use --quiet-upd");
         return;
-    }else if(args[i] === "--new-conf"){
+    } else if (args[i] === "--new-conf") {
         //set the new config flag
         gen_new_conf = true;
-    }else if(args[i] === "--quiet-upd"){
+    } else if (args[i] === "--quiet-upd") {
         //set the silent update flag
         silent_update_conf = true;
-    }else if(args[i].match(/^--env=[a-zA-Z0-9]*$/)){
+    } else if (args[i].match(/^--env=[a-zA-Z0-9]*$/)) {
         //Sets the environment
-        ENV = args[i].replace("--env=","");
-    }else if(args[i].match(/^--conf=[a-zA-Z0-9]*$/)){
+        ENV = args[i].replace("--env=", "");
+    } else if (args[i].match(/^--conf=[a-zA-Z0-9]*$/)) {
         //Sets the environment
-        exports.config = args[i].replace("--conf=","");
-    }else if(args[i].match(/^--no-load$/)){
+        exports.config = args[i].replace("--conf=", "");
+    } else if (args[i].match(/^--no-load$/)) {
         //Disable load balancer
         use_load_balancer = false;
     }
@@ -88,9 +88,9 @@ let consoleUtils = require("../utils/console_log.js");
 //initialises the console utils
 consoleUtils.init(ENV);
 
-console.debug({ENV, "config":exports.config, silent_update_conf, gen_new_conf});
+console.debug({ENV, "config": exports.config, silent_update_conf, gen_new_conf});
 
-if(gen_new_conf){
+if (gen_new_conf) {
     try {
         let file;
         if (!exports.config) {
@@ -100,18 +100,18 @@ if(gen_new_conf){
             //config was specified in args, use that one instead
             file = exports.config + ".json";
         }
-        file = "../conf/"+file;
+        file = "../conf/" + file;
 
         //Check if the file exists already (we don't want to override it!)
-        if(fs.existsSync(file)){
-            console.log(file+" already exists, continuing execution.");
+        if (fs.existsSync(file)) {
+            console.log(file + " already exists, continuing execution.");
             //we can just continue execution.
-        }else{
+        } else {
             //generate a blank config file. We will initialise it later on.
             fs.writeFileSync(file, "{}");
             console.log("Successfully generated config as " + file);
         }
-    }catch(err){
+    } catch (err) {
         //probably a permission error
         console.err(err);
         return;
@@ -126,27 +126,27 @@ function check_config(json, defaults) {
     let required_keys = Object.keys(defaults);
 
     //loop over all the keys and check them
-    for(let i = 0; i < required_keys.length; i++){
+    for (let i = 0; i < required_keys.length; i++) {
         let key = required_keys[i];
         //ignore the comments
-        if(key.match(/^__comment__[0-9]*$/)){
+        if (key.match(/^__comment__[0-9]*$/)) {
             //add comments to the file, but dont throw an error if it wasn't there
-            if(!json[key])
+            if (!json[key])
                 json[key] = defaults[key];
             continue;
         }
 
         //check if supplied JSON has that key
-        if(!json[key]){
+        if (!json[key]) {
             //not found, add it to
             is_identical = false;
             json[key] = defaults[key];
-            console.log("Current config missing value "+key+". Inserting it into the config.");
-        }else if(typeof json[key] === typeof {}){
+            console.log("Current config missing value " + key + ". Inserting it into the config.");
+        } else if (typeof json[key] === typeof {}) {
             //The current element is also JSON, therefore we need to check it.
             let dat = check_config(json[key], defaults[key]);
             //If it is currently identical, update the status
-            if(is_identical)
+            if (is_identical)
                 is_identical = dat['valid'];
 
             //remove this and save the data to the current json
@@ -158,15 +158,15 @@ function check_config(json, defaults) {
     return json;
 }
 
-try{
+try {
     let file = "";
-    if(!exports.config){
+    if (!exports.config) {
         //no config specified in args, so get environment default.
-        file = "../conf/"+ENV+".json";
-        console.log("Loading config for "+ENV+" env.");
-    }else{
+        file = "../conf/" + ENV + ".json";
+        console.log("Loading config for " + ENV + " env.");
+    } else {
         //config was specified in args, use that one instead
-        file = "../conf/"+exports.config+".json";
+        file = "../conf/" + exports.config + ".json";
         console.log("Loading config file.");
     }
     //require the config
@@ -180,19 +180,19 @@ try{
     delete json.valid;
 
     //Config missing values (not up to date)
-    if(!up_to_date){
+    if (!up_to_date) {
         fs.writeFileSync(file, JSON.stringify(json));
 
-        if(silent_update_conf){
+        if (silent_update_conf) {
             console.log("Config loaded with default values.");
-        }else {
+        } else {
             console.log("Please edit the config and re-run the program");
             return;
         }
-    }else{
+    } else {
         console.log("Valid config, starting the server");
     }
-}catch(err){
+} catch (err) {
     console.err(err);
     console.log("Config not found. Please create a config, or run again with argument --new-conf to generate a new conf file");
     return;
@@ -203,8 +203,8 @@ try{
 const rm = require("./request_manager.js");
 rm.init(this);
 
-if(use_load_balancer) {
-    //connect to the server pool
+if (use_load_balancer) {
+//connect to the server pool
     const pool = require("./pool_connector");
     pool.init(this);
 }

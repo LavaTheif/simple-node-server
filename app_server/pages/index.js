@@ -1,14 +1,19 @@
+exports.dynamic = true;
 /**
- @URL: /defaults
+ @URL: /
  @param:  N/A
 
- @response_code 501
+ @response_code 200
 
- @return    A plaintext error message to be shown to the client.
+ @return    Home Page to be shown to the client.
  */
 
-let page = "<html> <h1>501 -- Method Not Implemented :(</h1></html>";
+const fs = require("fs");
+let file = "index.html";
+let page = fs.readFileSync('./html_templates/' + file);
 
 exports.eval = function (post) {
-    return {responseCode: 501, response: page};
+    page += "This timestamp is generated dynamically: "+new Date().getTime();
+
+    return {responseCode: 200, response: page};
 }

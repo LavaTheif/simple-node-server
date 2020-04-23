@@ -1,6 +1,7 @@
 let config;
 let routes = {};
-let pages = {};
+let dynamic_pages = {};
+let static_pages = {};
 
 //https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 
@@ -15,28 +16,62 @@ exports.init = function(app_svr){
     //sets up a http server for clients to request data.
     //TODO: Force HTTPS
     const http = require("http");
-
-    // iterate over /routes and load them into the JSON var 'routes'
     const fs = require("fs");
+    const path = require('path');
+
+    function loadAPIroutes(dir = "/") {
+        // iterate over /routes and load them into the JSON var 'routes'
+        fs.readdir("./routes"+dir, (err, files) => {
+            files.forEach(file => {
+                if(isDir(file))
+                    return loadAPIroutes(dir + file+"/");
+
+                console.log("Loading: /API/" + file);
+                routes[file.replace(/\.js$/, "")] = require("./routes/" + file);
+            });
+            if(dir === "/")
+                console.log("API routes initialised");
+        });
+    }
+
+    function loadPages(dir = "/") {
+        fs.readdir("./pages"+dir, (err, files) => {
+            files.forEach(file => {
+                if(isDir(file))
+                    return loadPages(dir + file+"/");
+
+                //prepend current directory to the file
+                file = dir+file;
+                console.log("Loading page: " + file);
+
+                //check if file is a .js file
+                if(file.match(/\.js$/)){
+                    //load it as a script and check for dynamic tag
+                    let script = require("./pages" + file);
+                    if(script.dynamic){
+                        dynamic_pages[file.replace(/\.js$/, "")] = script;
+                    }else{
+                        //page is not dynamic
+                        static_pages[file] = fs.readFileSync("./pages" + file);
+                    }
+                }else{
+                    //static page
+                    static_pages[file] = fs.readFileSync("./pages" + file);
+                }
+            });
+            if(dir === "/")
+                console.log("Pages initialised");
+        });
+    }
+
+    function isDir(pathItem) {
+        return !path.extname(pathItem);
+    }
+
     console.log("Initialising API routes");
-    fs.readdir("./routes", (err, files) => {
-        files.forEach(file => {
-            console.log("Loading: /API/"+file);
-            routes[file.replace(/\.js$/,"")] = require("./routes/"+file);
-        });
-        console.log("API routes initialised");
-    });
-
+    loadAPIroutes();
     console.log("Initialising pages");
-    fs.readdir("./pages", (err, files) => {
-        files.forEach(file => {
-            file = "/"+file.replace(/\.js$/,"");
-            console.log("Loading page: "+file);
-            pages[file] = require("./pages/"+file);
-        });
-        console.log("API routes initialised");
-    });
-
+    loadPages();
 
     let handler = async function (req, res) {
         //if this doesnt change, then an error occurred.
@@ -59,10 +94,13 @@ exports.init = function(app_svr){
                 return res.end("");
             }
 
-            if(pages[route]){
+            console.debug({dynamic_pages, static_pages});
+
+            //check if the page is a dynamic page
+            if(dynamic_pages[route]){
                 let data;
                 try{
-                    data = pages[route].eval();
+                    data = dynamic_pages[route].eval();
                 }catch(err){
                     console.err(err);
                     res.writeHead(500);
@@ -70,6 +108,11 @@ exports.init = function(app_svr){
                 }
                 res.writeHead(data.responseCode);
                 return res.end(data.response);
+
+            }else if(static_pages[route]){
+                //checks if the page is static
+                res.writeHead(200);
+                return res.end(static_pages[route]);
 
             }else{
                 res.writeHead(404);
