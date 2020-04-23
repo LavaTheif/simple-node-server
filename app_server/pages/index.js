@@ -12,7 +12,7 @@ const fs = require("fs");
 let template_file = "index.html";
 
 exports.eval = function (post) {
-    let page = fs.readFileSync('./html_templates/' + file);
+    let page = fs.readFileSync('./html_templates/' + template_file);
     page += "This timestamp is generated dynamically: "+new Date().getTime();
 
     return {responseCode: 200, response: page};
