@@ -25,7 +25,7 @@
 
     "__comment__6":"[table names]",
     "tables":{
-        "users":"users",
+        "users":"users"
     },
     "load_balancer": "localhost"
 }
