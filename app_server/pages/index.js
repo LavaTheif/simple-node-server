@@ -9,10 +9,10 @@ exports.dynamic = true;
  */
 
 const fs = require("fs");
-let file = "index.html";
-let page = fs.readFileSync('./html_templates/' + file);
+let template_file = "index.html";
 
 exports.eval = function (post) {
+    let page = fs.readFileSync('./html_templates/' + file);
     page += "This timestamp is generated dynamically: "+new Date().getTime();
 
     return {responseCode: 200, response: page};

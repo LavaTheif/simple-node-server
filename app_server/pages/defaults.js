@@ -9,9 +9,9 @@ exports.dynamic = true;
  */
 
 const fs = require("fs");
-let file = null;
-let page = file === null?"<html> <h1>501 -- Method Not Implemented</h1></html>":fs.readFileSync('../html_templates/'+file);
+let template_file = null;
 
 exports.eval = function (post) {
+    let page = file === null?"<html> <h1>501 -- Method Not Implemented</h1></html>":fs.readFileSync('../html_templates/'+file);
     return {responseCode: 501, response: page};
 }

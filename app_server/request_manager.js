@@ -94,8 +94,6 @@ exports.init = function(app_svr){
                 return res.end("");
             }
 
-            console.debug({dynamic_pages, static_pages});
-
             //check if the page is a dynamic page
             if(dynamic_pages[route]){
                 let data;

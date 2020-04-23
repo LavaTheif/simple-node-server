@@ -11,10 +11,14 @@ exports.dynamic = true;
 
 const fs = require("fs");
 let template_file = null;
-let page = template_file === null?"":fs.readFileSync('./html_templates/' + template_file);
 
 exports.eval = function (post) {
-    page = "This was generated dynamically <br>";
+    // Load a template file
+    // let page = template_file === null?"":fs.readFileSync('./html_templates/' + template_file);
+
+    //generate file completely
+    let page = "<html>This was generated dynamically <br>";
     page += "current server time: "+new Date().getTime();
+    page+="</html>";
     return {responseCode: 200, response: page};
 }
