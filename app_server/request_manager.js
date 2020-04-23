@@ -19,6 +19,8 @@ exports.init = function(app_svr){
     const fs = require("fs");
     const path = require('path');
 
+    let supress_loading_pages = false;
+
     function loadAPIroutes(dir = "/") {
         // iterate over /routes and load them into the JSON var 'routes'
         fs.readdir("./routes"+dir, (err, files) => {
@@ -26,11 +28,13 @@ exports.init = function(app_svr){
                 if(isDir(file))
                     return loadAPIroutes(dir + file+"/");
 
-                console.log("Loading: /API/" + file);
+                if(!supress_loading_pages)
+                    console.log("Loading: /API/" + file);
                 routes[file.replace(/\.js$/, "")] = require("./routes/" + file);
             });
             if(dir === "/")
-                console.log("API routes initialised");
+                if(!supress_loading_pages)
+                    console.log("API routes initialised");
         });
     }
 
@@ -42,17 +46,19 @@ exports.init = function(app_svr){
 
                 //prepend current directory to the file
                 file = dir+file;
-                console.log("Loading page: " + file);
+                if(!supress_loading_pages)
+                    console.log("Loading page: " + file);
 
                 //check if file is a .js file
                 if(file.match(/\.js$/)){
                     //load it as a script and check for dynamic tag
-                    let script = require("./pages" + file);
-                    if(script.dynamic){
-                        dynamic_pages[file.replace(/\.js$/, "")] = script;
+                    let script = fs.readFileSync("./pages" + file);
+                    //kinda feels like a hack but if we require it and its just a regular js file intended for the client, it will throw errors
+                    if(script.toString().replace(/ /g,"").includes("exports.dynamic=true;")){
+                        dynamic_pages[file.replace(/\.js$/, "")] = require("./pages"+file);
                     }else{
                         //page is not dynamic
-                        static_pages[file] = fs.readFileSync("./pages" + file);
+                        static_pages[file] = script;
                     }
                 }else{
                     //static page
@@ -60,7 +66,8 @@ exports.init = function(app_svr){
                 }
             });
             if(dir === "/")
-                console.log("Pages initialised");
+                if(!supress_loading_pages)
+                    console.log("Pages initialised");
         });
     }
 
@@ -72,6 +79,14 @@ exports.init = function(app_svr){
     loadAPIroutes();
     console.log("Initialising pages");
     loadPages();
+
+    if(this.config.refresh_pages){
+        supress_loading_pages = true;
+        setInterval(function(){
+            loadPages();
+            loadAPIroutes();
+        }, 1000);
+    }
 
     let handler = async function (req, res) {
         //if this doesnt change, then an error occurred.

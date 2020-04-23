@@ -48,6 +48,7 @@ exports.config;
 let silent_update_conf = false;
 let gen_new_conf = false;
 let use_load_balancer = true;
+let refresh_pages = false;
 
 //Process all arguments
 for (let i = 0; i < args.length; i++) {
@@ -59,7 +60,8 @@ for (let i = 0; i < args.length; i++) {
         console.info("--quiet-upd\t|\tif the config is missing elements, import the new ones from the defaults and suppress warnings");
         console.info("--conf=name\t|\trun using a specific config file rather than the environment config");
         console.info("--env=env  \t|\tset the environment from the command line and override the ENV file");
-        console.info("--no-load  \t|\tDon't use the load balancer");
+        console.info("--no-load  \t|\tDon't use the load balancer (intended for development purposes)");
+        console.info("--refresh  \t|\tReloads the pages every second (intended for development purposes)");
         console.info("");
         console.info("");
         console.info("Note: --new-conf will generate a default config and terminate the process. To continue execution, use --quiet-upd");
@@ -79,6 +81,9 @@ for (let i = 0; i < args.length; i++) {
     } else if (args[i].match(/^--no-load$/)) {
         //Disable load balancer
         use_load_balancer = false;
+    } else if (args[i].match(/^--refresh$/)) {
+        //enable reloading of pages for development
+        refresh_pages = true;
     }
 }
 
@@ -197,7 +202,8 @@ try {
     console.log("Config not found. Please create a config, or run again with argument --new-conf to generate a new conf file");
     return;
 }
-
+//add any flags to the config
+exports.config.refresh_pages = true;
 
 //initialise the request manager.
 const rm = require("./request_manager.js");
