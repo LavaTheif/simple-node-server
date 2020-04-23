@@ -1,0 +1,31 @@
+{
+    "__comment__0":"[Connection details for the MySql Database]",
+    "sql_host":"localhost",
+    "sql_port":3306,
+    "sql_database":"database",
+
+    "__comment__1":"[Database Users]",
+    "users": {
+        "__comment__2":"[Admin user has * perms for database. Used during initialisation to create/ modify databases. (Not used to process user data)]",
+        "admin":"root",
+        "admin_pass":"",
+
+        "__comment__3":"[Account with deletion perms (but not DROP table;)]",
+        "delete":"root",
+        "delete_pass":"",
+
+        "__comment__4":"[Account with write perms (INSERT / UPDATE etc)]",
+        "write":"root",
+        "write_pass":"",
+
+        "__comment__5":"[Account with read perms (can not edit the database)]",
+        "read":"root",
+        "read_pass":""
+    },
+
+    "__comment__6":"[table names]",
+    "tables":{
+        "users":"users",
+    },
+    "load_balancer": "localhost"
+}
