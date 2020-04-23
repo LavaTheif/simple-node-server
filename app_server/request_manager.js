@@ -113,7 +113,7 @@ exports.init = function(app_svr){
             if(dynamic_pages[route]){
                 let data;
                 try{
-                    data = dynamic_pages[route].eval();
+                    data = await dynamic_pages[route].eval();
                 }catch(err){
                     console.err(err);
                     res.writeHead(500);
