@@ -8,3 +8,5 @@ To add a server to the load balancer, create a file ../conf/allowed_servers.json
 
 
 options: Execute node . help in the appserver directory to see a list of runtime options
+
+Example of a dynamicly loaded page: https://github.com/LavaTheif/simple-node-server/wiki/Example-dynamic-index-page
