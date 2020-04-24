@@ -14,7 +14,7 @@ const fs = require("fs");
 const template_file = null;
 
 //This function can be async if you need it to be
-exports.eval = function (post) {
+exports.eval = function (req) {
     // Load a template file
     // let page = template_file === null?"":fs.readFileSync('./html_templates/' + template_file);
 
