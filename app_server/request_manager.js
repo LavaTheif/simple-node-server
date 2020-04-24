@@ -213,7 +213,7 @@ async function getPostDat(req) {
                     try{
                         resolve(JSON.parse('{"' + post.replace(/&/g, '","').replace(/=/g,'":"') + '"}', function(key, value) { return key===""?value:decodeURIComponent(value) }))
                     }catch (e){
-                        resolve(body)
+                        resolve({body: body})
                     }
                 }
             }else{
