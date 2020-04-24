@@ -156,10 +156,10 @@ exports.init = function(app_svr){
             return res.end("POST method route");
         }
 
-        if(Object.keys(postDat).length === 0){
-            res.writeHead(400);
-            return res.end("Malformed request");
-        }
+        //if(Object.keys(postDat).length === 0){
+        //    res.writeHead(400);
+        //    return res.end("Malformed request");
+        //}
 
         if(routes[route]){
             let data;
@@ -210,7 +210,11 @@ async function getPostDat(req) {
                 try {
                     resolve(JSON.parse(body));
                 } catch (e) {
-                    resolve({})
+                    try{
+                        resolve(JSON.parse('{"' + post.replace(/&/g, '","').replace(/=/g,'":"') + '"}', function(key, value) { return key===""?value:decodeURIComponent(value) }))
+                    }catch (e){
+                        resolve(body)
+                    }
                 }
             }else{
                 resolve({});
