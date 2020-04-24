@@ -11,7 +11,7 @@ exports.dynamic = true;
 const fs = require("fs");
 let template_file = "index.html";
 
-exports.eval = function (post) {
+exports.eval = function (req) {
     let page = fs.readFileSync('./html_templates/' + template_file);
     page += "This timestamp is generated dynamically: "+new Date().getTime();
 
