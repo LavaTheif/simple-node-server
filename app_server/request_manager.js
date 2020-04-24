@@ -164,7 +164,7 @@ exports.init = function(app_svr){
         if(routes[route]){
             let data;
             try{
-                data = routes[route].eval(postDat);
+                data = await routes[route].eval(postDat);
             }catch(err){
                 console.err(err);
                 res.writeHead(500);
