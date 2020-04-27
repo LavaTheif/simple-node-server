@@ -164,14 +164,31 @@ exports.init = function(app_svr){
         if(routes[route]){
             let data;
             try{
-                data = await routes[route].eval(postDat);
+                let evalFunc = routes[route].eval;
+                if(evalFunc.length === 1){
+                    //Dont send req and res
+                    data = await evalFunc(postDat);
+                }else{
+                    //send req and res
+                    //dont  worry about checking if its 3 params, node will handle that error for us
+                    data = await evalFunc(postDat, req, res);
+                    if(data.res){
+                        res = data.res;
+                    }
+                }
             }catch(err){
                 console.err(err);
                 res.writeHead(500);
                 return res.end("Internal Server Error");
             }
-            res.writeHead(data.responseCode);
-            return res.end(data.response);
+            if(data.responseCode)
+                res.writeHead(data.responseCode);
+
+
+            if(data.response)
+                return res.end(data.response);
+            else
+                return res.end();
 
         }else{
             res.writeHead(404);
