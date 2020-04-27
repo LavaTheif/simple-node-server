@@ -98,6 +98,12 @@ exports.init = function(app_svr){
     try{
         console.log("Loading server utils");
         utils = require("./server_utils.js");
+        console.log("Loaded server utils");
+        if(utils.init){
+            console.log("Initialising server utils");
+            utils.init(this.config);
+            console.log("Server utils initialised");
+        }
     }catch(e){
         console.debug({
             ALERT: "ERROR",
