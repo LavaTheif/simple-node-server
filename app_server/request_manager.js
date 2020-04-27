@@ -2,6 +2,7 @@ let config;
 let routes = {};
 let dynamic_pages = {};
 let static_pages = {};
+let utils;
 
 //https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 
@@ -30,7 +31,10 @@ exports.init = function(app_svr){
 
                 if(!supress_loading_pages)
                     console.log("Loading: /API/" + file);
-                routes[file.replace(/\.js$/, "")] = require("./routes/" + file);
+
+                let id = file.replace(/\.js$/, "");
+                routes[id] = require("./routes/" + file);
+                routes[id].config = app_svr.config;
             });
             if(dir === "/")
                 if(!supress_loading_pages)
@@ -55,7 +59,9 @@ exports.init = function(app_svr){
                     let script = fs.readFileSync("./pages" + file);
                     //kinda feels like a hack but if we require it and its just a regular js file intended for the client, it will throw errors
                     if(script.toString().replace(/ /g,"").includes("exports.dynamic=true;")){
-                        dynamic_pages[file.replace(/\.js$/, "")] = require("./pages"+file);
+                        let id = file.replace(/\.js$/, "");
+                        dynamic_pages[id] = require("./pages"+file);
+                        dynamic_pages[id].config = app_svr.config;
                     }else{
                         //page is not dynamic
                         static_pages[file] = script;
@@ -81,11 +87,29 @@ exports.init = function(app_svr){
     loadPages();
 
     if(this.config.refresh_pages){
-        supress_loading_pages = true;
         setInterval(function(){
+            supress_loading_pages = true;
             loadPages();
             loadAPIroutes();
         }, 1000);
+    }
+
+    //Load the server utils. Useful for reusing db connections between routes
+    try{
+        console.log("Loading server utils");
+        utils = require("./server_utils.js");
+    }catch(e){
+        console.debug({
+            ALERT: "ERROR",
+            message: "There was an error with your utils file and it could not be loaded",
+            info: "This could mean the code is buggy, or the file does not exist.",
+            solution: "If you have a utils file, you should take a look at it. If one is not needed, you can either ignore this message, or create a blank file",
+            note: "This message will only be shown in the development environment.",
+            filename: "./server_utils.js",
+            errorMsg: {e}
+        });
+        console.log("Could not find a utils file, continuing without one.");
+        utils = {};
     }
 
     let handler = async function (req, res) {
@@ -112,8 +136,20 @@ exports.init = function(app_svr){
             //check if the page is a dynamic page
             if(dynamic_pages[route]){
                 let data;
+
                 try{
-                    data = await dynamic_pages[route].eval(req);
+                    let evalFunc = dynamic_pages[route].eval;
+                    if(evalFunc.length === 1){
+                        //Dont send res or utils
+                        data = await evalFunc(req);
+                    }else if(evalFunc.length === 2){
+                        //send res, dont send utils
+                        data = await evalFunc(req, res);
+                    }else{
+                        //send res and utils
+                        //dont worry about checking if its 3 params, node will handle that error for us
+                        data = await evalFunc(req, res, utils);
+                    }
                 }catch(err){
                     console.err(err);
                     res.writeHead(500);
@@ -156,22 +192,28 @@ exports.init = function(app_svr){
             return res.end("POST method route");
         }
 
-        //if(Object.keys(postDat).length === 0){
-        //    res.writeHead(400);
-        //    return res.end("Malformed request");
-        //}
+        // if(Object.keys(postDat).length === 0){
+        //     res.writeHead(400);
+        //     return res.end("Malformed request");
+        // }
 
         if(routes[route]){
             let data;
             try{
                 let evalFunc = routes[route].eval;
                 if(evalFunc.length === 1){
-                    //Dont send req and res
+                    //Dont send req, res, or utils
                     data = await evalFunc(postDat);
-                }else{
-                    //send req and res
-                    //dont  worry about checking if its 3 params, node will handle that error for us
+                }else if(evalFunc.length === 2){
+                    //Dont send req and res, send utils
+                    data = await evalFunc(postDat, utils);
+                }else if(evalFunc.length === 3){
+                    //send just req and res, dont send utils
                     data = await evalFunc(postDat, req, res);
+                }else{
+                    //send req and res and utils
+                    //dont worry about checking if its 4 params, node will handle that error for us
+                    data = await evalFunc(postDat, utils, req, res);
                     if(data.res){
                         res = data.res;
                     }
@@ -228,8 +270,8 @@ async function getPostDat(req) {
                     resolve(JSON.parse(body));
                 } catch (e) {
                     try{
-                        resolve(JSON.parse('{"' + post.replace(/&/g, '","').replace(/=/g,'":"') + '"}', function(key, value) { return key===""?value:decodeURIComponent(value) }))
-                    }catch (e){
+                        resolve(JSON.parse('{"' + body.replace(/&/g, '","').replace(/=/g,'":"') + '"}', function(key, value) { return key===""?value:decodeURIComponent(value) }))
+                    }catch (ee){
                         resolve({body: body})
                     }
                 }
