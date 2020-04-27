@@ -161,8 +161,16 @@ exports.init = function(app_svr){
                     res.writeHead(500);
                     return res.end("Internal Server Error");
                 }
-                res.writeHead(data.responseCode);
-                return res.end(data.response);
+                if(data.res){
+                    res = data.res;
+                }
+                if(data.responseCode)
+                    res.writeHead(data.responseCode);
+
+                if(data.response)
+                    return res.end(data.response);
+                else
+                    return res.end();
 
             }else if(static_pages[route]){
                 //checks if the page is static
@@ -220,18 +228,17 @@ exports.init = function(app_svr){
                     //send req and res and utils
                     //dont worry about checking if its 4 params, node will handle that error for us
                     data = await evalFunc(postDat, utils, req, res);
-                    if(data.res){
-                        res = data.res;
-                    }
                 }
             }catch(err){
                 console.err(err);
                 res.writeHead(500);
                 return res.end("Internal Server Error");
             }
+            if(data.res){
+                res = data.res;
+            }
             if(data.responseCode)
                 res.writeHead(data.responseCode);
-
 
             if(data.response)
                 return res.end(data.response);
