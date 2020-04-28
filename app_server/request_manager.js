@@ -13,6 +13,7 @@ let utils;
 exports.init = function(app_svr){
     //stores the config file
     this.config = app_svr.config;
+    this.config.ENV = app_svr.ENV;
 
     //sets up a http server for clients to request data.
     //TODO: Force HTTPS
