@@ -204,6 +204,7 @@ try {
 }
 //add any flags to the config
 exports.config.refresh_pages = true;
+exports.config.ENV = ENV;
 
 //initialise the request manager.
 const rm = require("./request_manager.js");
