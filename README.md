@@ -23,42 +23,60 @@ Note: --new-conf will generate a default config and terminate the process. To co
 #### ../conf/
 In the root directory, create a new folder call `conf`. This is where you should put all your configs private files that will not get committed.
 
+
 To start with, create an environment file `ENV.json` with the attribute `env` set to your current environment (likely "DEV").
+
 
 Next, you need to create a `defaults.json` file. This will be the default config template. You can put what you want in this file as it is passed into the server_utils file, however you must include `"load_balancer": "localhost"` so that the server knows where to connect to the load balancer.
 
+
 When you first run the server, it will generate 2 key files and terminate. These will also be in the same directory and are explained in the load balancer setup below.
+
 
 After these files are generated, the server will attempt to load the environment config file (eg if env=DEV, it will load DEV.json). You can use --new-conf to automatically generate from the defaults.json file.
 
+
 > note: if you ever update defaults.json, it will automatically update the current environment config to include the new values (use --quiet-upd to update the file silently)
+
 
 ### API routes
 API routes are designed to handle POST requests and return a response to the client.
 Go into the /routes/ and create a route.js file. It should be of the same format as as the defaults.js file.
+
 
 #### eval function
 The eval function is the entry point to the route. The base function can be defined as follows:
 `exports.eval = function (params){}`
 and supports being asynchronous. (if thats spelt correct).
 
+
 The paramaters are as follows:
 
+
 > 1 Paramater
-(post) => the post data sent with the request, in JSON format. If the data recieved was not valid JSON, then it will return {body: postDataHere}
+
+`(post)` => the post data sent with the request, in JSON format. If the data recieved was not valid JSON, then it will return {body: postDataHere}
+
 
 > 2 Paramaters
-(post, utils) => The server util file (optional file, explained further down)
+
+`(post, utils)` => The server util file (optional file, explained further down)
+
 
 > 3 Paramaters
-(post, request, response) => The request and response functions (http not express)
+
+`(post, request, response)` => The request and response functions (http not express)
+
 
 > 4 Paramaters
-(post, utils, request, response) => all data together
+
+`(post, utils, request, response)` => all data together
 
 
 And the function should return data in the following format:
-{res: responseVariable, responseCode: int, response: responseBody}
+
+`{res: responseVariable, responseCode: int, response: responseBody}`
+
 
 Note: All paramaters are optional (however it is highly recommended to either return the responseCode or the responseVariable, with a response code set)
 
@@ -67,6 +85,7 @@ All API requests will go through /API/route, and you should not use the API dire
 ### Dynamic pages
 Dynamic pages are web pages that are loaded and edited by the server before sending it to the client.
 Go to the /pages/ directory and create an index.js file, which will handle the homepage. It should be of the same format as as the defaults.js file.
+
 
 > NOTE: You should not place any files in a directory named /API/
 
@@ -78,19 +97,27 @@ The eval function is the entry point to the route. The base function can be defi
 `exports.eval = function (params){}`
 and supports being async.
 
+
 The paramaters are as follows:
 
 > 1 Paramater
-(req) => The http request variable, to access headers etc
+
+`(req)` => The http request variable, to access headers etc
+
 
 > 2 Paramaters
-(req, res) => The http response varialbe, to redirect ans set cookies etc
+
+`(req, res)` => The http response varialbe, to redirect ans set cookies etc
+
 
 > 3 Paramaters
-(req, res, utils) => The server Utils file
+
+`(req, res, utils)` => The server Utils file
 
 And the function should return data in the following format:
-{res: responseVariable, responseCode: int, response: responseBody}
+
+`{res: responseVariable, responseCode: int, response: responseBody}`
+
 
 Note: All paramaters are optional (however it is highly recommended to either return the responseCode and responseBody or the responseVariable, with a response code and body set)
 
@@ -108,7 +135,9 @@ You should not place any files in a directory named /API/
 
 ### Server Utils
 The server utils file is an optional util file that can be passed to all the routes and pages (ideal for managing database connections etc).
+
 The server will give you a warning if it can't load the file named `./server_utils.js`. This could mean it doesn't exist, or contained an error while loading it. This message will be hidden outside of DEV environments.
+
 
 If you need to initialise the file with data from the config file, add the following function
 ```
