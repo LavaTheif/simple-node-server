@@ -167,10 +167,14 @@ exports.init = function(app_svr){
                 if(data.responseCode)
                     res.writeHead(data.responseCode);
 
-                if(data.response)
-                    return res.end(data.response);
-                else
+                if(data.response){
+                    if(typeof data.response === "object")
+                        return res.end(JSON.stringify(data.response));
+                    else
+                        return res.end(data.response);
+                }else{
                     return res.end();
+                }
 
             }else if(static_pages[route]){
                 //checks if the page is static
@@ -240,10 +244,14 @@ exports.init = function(app_svr){
             if(data.responseCode)
                 res.writeHead(data.responseCode);
 
-            if(data.response)
-                return res.end(data.response);
-            else
-                return res.end();
+                if(data.response){
+                    if(typeof data.response === "object")
+                        return res.end(JSON.stringify(data.response));
+                    else
+                        return res.end(data.response);
+                }else{
+                    return res.end();
+                }
 
         }else{
             res.writeHead(404);
